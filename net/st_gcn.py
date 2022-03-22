@@ -5,10 +5,9 @@ from torch.autograd import Variable
 
 from net.utils.tgcn import ConvTemporalGraphical
 from net.utils.graph import Graph
-
+from net.utils.ms_tcn import multi_scale_temporal_excitation as mste
 class Model(nn.Module):
     r"""Spatial temporal graph convolutional networks.
-
     Args:
         in_channels (int): Number of channels in the input data
         num_class (int): Number of classes for the classification task
@@ -16,7 +15,6 @@ class Model(nn.Module):
         edge_importance_weighting (bool): If ``True``, adds a learnable
             importance weighting to the edges of the graph
         **kwargs (optional): Other parameters for graph convolution units
-
     Shape:
         - Input: :math:`(N, in_channels, T_{in}, V_{in}, M_{in})`
         - Output: :math:`(N, num_class)` where
@@ -117,7 +115,6 @@ class Model(nn.Module):
 
 class st_gcn(nn.Module):
     r"""Applies a spatial temporal graph convolution over an input graph sequence.
-
     Args:
         in_channels (int): Number of channels in the input sequence data
         out_channels (int): Number of channels produced by the convolution
@@ -125,19 +122,16 @@ class st_gcn(nn.Module):
         stride (int, optional): Stride of the temporal convolution. Default: 1
         dropout (int, optional): Dropout rate of the final output. Default: 0
         residual (bool, optional): If ``True``, applies a residual mechanism. Default: ``True``
-
     Shape:
         - Input[0]: Input graph sequence in :math:`(N, in_channels, T_{in}, V)` format
         - Input[1]: Input graph adjacency matrix in :math:`(K, V, V)` format
         - Output[0]: Outpu graph sequence in :math:`(N, out_channels, T_{out}, V)` format
         - Output[1]: Graph adjacency matrix for output data in :math:`(K, V, V)` format
-
         where
             :math:`N` is a batch size,
             :math:`K` is the spatial kernel size, as :math:`K == kernel_size[1]`,
             :math:`T_{in}/T_{out}` is a length of input/output sequence,
             :math:`V` is the number of graph nodes.
-
     """
 
     def __init__(self,
@@ -188,10 +182,12 @@ class st_gcn(nn.Module):
 
         self.relu = nn.ReLU(inplace=True)
 
+        self.mste = mste(out_channels)
+
     def forward(self, x, A):
 
         res = self.residual(x)
         x, A = self.gcn(x, A)
-        x = self.tcn(x) + res
+        x = self.mste( self.tcn(x) ) + res
 
         return self.relu(x), A

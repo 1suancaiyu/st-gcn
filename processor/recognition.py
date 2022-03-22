@@ -40,6 +40,9 @@ class REC_Processor(Processor):
     def load_model(self):
         self.model = self.io.load_model(self.arg.model,
                                         **(self.arg.model_args))
+
+        print(self.model)
+
         self.model.apply(weights_init)
         self.loss = nn.CrossEntropyLoss()
         
