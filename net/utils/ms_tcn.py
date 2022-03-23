@@ -18,7 +18,6 @@ class Motion_Excitation(nn.Module):
         self.me_bn1 = nn.BatchNorm2d(self.reduced_channels)
         self.me_conv1 = nn.Conv2d(self.reduced_channels, self.reduced_channels, kernel_size=1)
         self.me_expand = nn.Conv2d(in_channels=self.reduced_channels, out_channels=self.in_channels, kernel_size=1)
-
         self.sigmoid = nn.Sigmoid()
 
         print('=> Using Motion_Excitation')
@@ -116,14 +115,14 @@ class Short_Term_Excitation(nn.Module):
 class multi_scale_temporal_excitation(nn.Module):
     def __init__(self, in_channels):
         super(multi_scale_temporal_excitation, self).__init__()
-        # self.me = Motion_Excitation(in_channels, n_segment=4)
+        self.me = Motion_Excitation(in_channels, n_segment=3)
         # self.ste = Short_Term_Excitation(in_channels)
-        self.lte = Long_Term_Excitation(in_channels)
+        # self.lte = Long_Term_Excitation(in_channels)
 
     def forward(self, x):
-        # me = self.me(x)
+        me = self.me(x)
         # ste = self.ste(x)
-        lte = self.lte(x)
+        # lte = self.lte(x)
         # x = me + ste + lte
-        x = lte
+        x = me
         return x
